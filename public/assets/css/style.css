@@ -1,0 +1,27 @@
+
+.imgLogo {
+    height: 5vh;
+    width: 10vh;
+}
+header{
+    background-color: rgb(77, 190, 228);
+}
+header p{
+    text-align: center;
+    font-size: 20px;  
+}
+h2{
+    text-align: center;
+    color: blueviolet;
+}
+.results{
+    color: blueviolet;
+    font-size: 20px;
+}
+.pictureProfil{
+    height: 200px;
+    width: 150px;
+}
+.red{
+    color: red;
+}
