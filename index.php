@@ -98,19 +98,22 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
             $errors['message'] = 'Veuillez entrer un message entre 10 et 500 caractéres';
         }
     }
-    //récuperation du ficher anniversaire nettoyage et validation
+    //récuperation du ficher recu nettoyage et validation
     $file = filter_input(INPUT_POST, 'file', FILTER_SANITIZE_SPECIAL_CHARS);
     $fileName = $_FILES['file']['name'];
     $extensionfile = strrchr($_FILES['file']['name'], '.');
     $taillefile = filesize($_FILES['file']['tmp_name']);
     $taillemax = 100000;
     if (empty($file)) {
-        $errors['file'] = 'Veuillez entrer un fichier';
-    }elseif ($taillefile > $taillemax){
+        $errors['file'] = 'Veuillez entrer un fichier';        
+    }
+    elseif (!in_array($extensionfile, EXTENSION)){
+        $errors['file'] = 'Veuillez entrer un fichier valide';
+    }
+    elseif ($taillefile > $taillemax){
         $errors['file'] = 'Veuillez entrer un fichier avec une taille inferieur';
     }else {
-        if (!in_array($extensionfile, EXTENSION))
-            $errors['file'] = 'Veuillez entrer un fichier valide';
+
     }
 }
 
@@ -226,6 +229,9 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                         <label class="form-label" for="profilpicture">Photo de profil</label>
                         <div class="border border-3 pictureProfil ms-5 "></div>
                         <input class="form-control my-3" type="file" id="profilpicture" name="file">
+                        <p class="red">
+                            <?= $errors['file'] ?? '' ?>
+                        </p>
                     </div>
                     <div>
                         <label class="form-label" for="urllinked">Url compte Linked</label>
