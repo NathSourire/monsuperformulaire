@@ -17,14 +17,14 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     }
     // récuperation du mot de passe nettoyage et validation
     $password1 = filter_input(INPUT_POST, 'password1', FILTER_DEFAULT);
-    $password2 = filter_input(INPUT_POST, 'password2', FILTER_DEFAULT); 
-    
+    $password2 = filter_input(INPUT_POST, 'password2', FILTER_DEFAULT);
+
     if (empty($password1)) {
         $errors['password1'] = 'Veuillez entrer un mot de passe';
-    } elseif ($password1 !== $password2 ) {
+    } elseif ($password1 !== $password2) {
         $errors['password1'] = 'Veuillez entrer des mots de passe identique';
     } else {
-        $isOk = filter_var($password1, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' .REGEX_PASSWORD. '/']]);
+        $isOk = filter_var($password1, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' . REGEX_PASSWORD . '/']]);
         if (!$isOk) {
             $errors['password1'] = 'Veuillez entrer un mot de passe valide';
         }
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     if (empty($lastname)) {
         $errors['lastname'] = 'Veuillez entrer un nom de famille ';
     } else {
-        $isOk = filter_var($lastname, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' =>'/' .REGEX_NAME. '/']]);
+        $isOk = filter_var($lastname, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' . REGEX_NAME . '/']]);
         if (!$isOk) {
             $errors['lastname'] = 'Veuillez entrer un nom de famille valide';
         }
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     if (empty($zipCode)) {
         $errors['zipCode'] = 'Veuillez entrer un code postal';
     } else {
-        $isOk = filter_var($zipCode, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' .REGEX_POSTAL. '/']]);
+        $isOk = filter_var($zipCode, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' . REGEX_POSTAL . '/']]);
         if (!$isOk) {
             $errors['zipCode'] = 'Veuillez entrer un code postale valide';
         }
@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     if (empty($dateOfBirthday)) {
         $errors['dateOfBirthday'] = 'Veuillez entrer une date de naissance';
     } else {
-        $isOk = filter_var($dateOfBirthday, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' .REGEX_BIRTHDAY. '/']]);
+        $isOk = filter_var($dateOfBirthday, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' . REGEX_BIRTHDAY . '/']]);
         if (!$isOk) {
             $errors['dateOfBirthday'] = 'Veuillez entrer une date de naissance valide';
         }
@@ -79,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     if (empty($urlLink)) {
         $errors['urllinked'] = 'Veuillez entrer une url';
     } else {
-        $isOk = filter_var($urlLink, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' .REGEX_URL. '/']]);
+        $isOk = filter_var($urlLink, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/' . REGEX_URL . '/']]);
         if (!$isOk) {
             $errors['urlLink'] = 'Veuillez entrer une url valide';
         }
@@ -94,29 +94,36 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
     //récuperation et nettoyage du message
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_SPECIAL_CHARS);
     if (!empty($message)) {
-        if (strlen($message) < 10 || strlen($message) > 500) {
-            $errors['message'] = 'Veuillez entrer un message entre 10 et 500 caractéres';
+        if (strlen($message) > 500) {
+            $errors['message'] = 'Veuillez entrer un message de moins de 500 caractéres';
         }
     }
     //récuperation du ficher recu nettoyage et validation
-    $file = filter_input(INPUT_POST, 'file', FILTER_SANITIZE_SPECIAL_CHARS);
-    $fileName = $_FILES['file']['name'];
-    $extensionfile = strrchr($_FILES['file']['name'], '.');
-    $taillefile = filesize($_FILES['file']['tmp_name']);
-    $taillemax = 100000;
-    if (empty($file)) {
-        $errors['file'] = 'Veuillez entrer un fichier';        
-    }
-    elseif (!in_array($extensionfile, EXTENSION)){
-        $errors['file'] = 'Veuillez entrer un fichier valide';
-    }
-    elseif ($taillefile > $taillemax){
-        $errors['file'] = 'Veuillez entrer un fichier avec une taille inferieur';
-    }else {
+    try {
+        $uploadfiles = ($_FILES['uploadfiles']);
+        if (empty($uploadfiles)) {
+            throw new Exception("Veuillez entrer un fichier", 1);
+        }
+        if ($uploadfiles['error'] != 0) {
+            throw new Exception("Fichier non envoyé", 2);
+        }
+        if (!in_array($uploadfiles['type'], EXTENSION)) {
+            throw new Exception("Veuillez entrer un fichier valide ( soit .png, .jpg, .jpeg, .gif, .pdf)", 3);
+        }
+        if ($uploadfiles['size'] > FILESIZE) {
+            $errors['uploadfiles'] = 'Veuillez entrer un fichier avec une taille inferieur';
+        }
+        $extension = pathinfo($uploadfiles['name'], PATHINFO_EXTENSION);
+        $newnamefile = uniqid('pp_') . '.' . $extension;
+        $from = $uploadfiles['tmp_name'];
+        $to = './public/uploads/users/' . $newnamefile;
+        move_uploaded_file($from, $to);
 
+    } catch (\Throwable $th) {
+        $errors['uploadfiles'] = $th->getMessage();
     }
+    // var_dump($errors['uploadfiles']);
 }
-
 
 ?>
 
@@ -228,7 +235,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                     <div>
                         <label class="form-label" for="profilpicture">Photo de profil</label>
                         <div class="border border-3 pictureProfil ms-5 "></div>
-                        <input class="form-control my-3" type="file" id="profilpicture" name="file">
+                        <input class="form-control my-3" type="file" id="profilpicture" name="uploadfiles" accept=".png, .jpeg, .jpg, .gif">
                         <p class="red">
                             <?= $errors['file'] ?? '' ?>
                         </p>
@@ -251,7 +258,7 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                     </div>
                     <div>
                         <label class="form-label" for="message">Votre experience</label> <br>
-                        <textarea name="message" id="message" cols="50" rows="10" minlength="10" maxlength="500" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir."></textarea>
+                        <textarea name="message" id="message" cols="50" rows="10" maxlength="500" placeholder="Racontez une expérience avec la programmation et/ou l'informatique que vous auriez pu avoir."></textarea>
                     </div>
                 </div>
             </fieldset>
