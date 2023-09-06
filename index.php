@@ -1,5 +1,6 @@
 <?php
-require './contante.php';
+// recupération des page regex.php et constante.php
+require './constante.php';
 require './regex.php';
 // $currentdate = new DateTime();
 // $currentdate -> format('Y-m-d');
@@ -189,8 +190,8 @@ if ($_SERVER["REQUEST_METHOD"] == 'POST') {
                     </div>
                     <div>
                         <label class="form-label" for="civility1">Civilité :</label><br>
-                        <input class="ms-5" type="radio" value="1" id="civility1" name="civility">Mr<br>
-                        <label class="form-label" for="civility2">Civilité :</label><br>
+                        <input class="ms-5" type="radio" value="1" id="civility1" name="civility">Mr
+                        <label class="form-label" for="civility2"></label><br>
                         <input class="ms-5" type="radio" value="2" id="civility2" name="civility">Mme
                         <p class="red">
                             <?= $errors['civility'] ?? '' ?>
